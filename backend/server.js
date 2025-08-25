@@ -1,7 +1,9 @@
 const express = require("express");
 const { execSync } = require("child_process");
+const path = require("path");
+
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 function runCpp(args) {
   try {
@@ -11,7 +13,7 @@ function runCpp(args) {
   }
 }
 
-// Routes
+// --- API Routes ---
 app.get("/add/:val", (req, res) => {
   const output = runCpp(`add ${req.params.val}`);
   res.json({ array: JSON.parse(output) });
@@ -41,6 +43,14 @@ app.get("/size", (req, res) => {
 app.get("/array", (req, res) => {
   const output = runCpp(`get`);
   res.json({ array: JSON.parse(output) });
+});
+
+// --- Serve Frontend Build ---
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+// Catch-all: let React handle frontend routing
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
 });
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
